@@ -1,0 +1,54 @@
+{
+  "name": "@cheeseandcereal/openclaw-bedrock-images",
+  "version": "0.1.0",
+  "description": "OpenClaw image generation plugin for Stability AI models on Amazon Bedrock (InvokeModel with Bedrock API keys or AWS credentials)",
+  "type": "module",
+  "license": "Unlicense",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cheeseandcereal/openclaw-bedrock-images.git"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "amazon-bedrock",
+    "stability-ai",
+    "image-generation"
+  ],
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "UNLICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.7.1",
+      "minGatewayVersion": "2026.7.1"
+    },
+    "build": {
+      "openclawVersion": "2026.7.1",
+      "pluginSdkVersion": "2026.7.1"
+    }
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.7.1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1087.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "openclaw": "2026.7.1",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

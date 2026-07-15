@@ -1,0 +1,89 @@
+{
+  "id": "bedrock-images",
+  "name": "Bedrock Images",
+  "description": "Stability AI image generation and editing on Amazon Bedrock via InvokeModel",
+  "providers": ["bedrock-images"],
+  "activation": {
+    "onStartup": true
+  },
+  "setup": {
+    "providers": [
+      {
+        "id": "bedrock-images",
+        "envVars": ["AWS_BEARER_TOKEN_BEDROCK"]
+      }
+    ]
+  },
+  "providerAuthChoices": [
+    {
+      "provider": "bedrock-images",
+      "method": "api-key",
+      "choiceId": "bedrock-images-api-key",
+      "choiceLabel": "Amazon Bedrock API key",
+      "groupId": "bedrock-images",
+      "groupLabel": "Bedrock Images",
+      "groupHint": "Stability AI image generation on Amazon Bedrock",
+      "onboardingScopes": ["image-generation"],
+      "optionKey": "bedrockImagesApiKey",
+      "cliFlag": "--bedrock-images-api-key",
+      "cliOption": "--bedrock-images-api-key <key>",
+      "cliDescription": "Amazon Bedrock API key"
+    }
+  ],
+  "contracts": {
+    "imageGenerationProviders": ["bedrock-images"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "region": {
+        "type": "string",
+        "description": "AWS region for the bedrock-runtime endpoint (falls back to the AWS SDK region resolution chain, e.g. AWS_REGION)"
+      },
+      "auth": {
+        "type": "string",
+        "enum": ["api-key", "aws-sdk"],
+        "description": "Authentication mode: 'api-key' (default) uses a Bedrock API key bearer token; 'aws-sdk' uses the AWS SDK default credential chain (SigV4)"
+      },
+      "defaultModel": {
+        "type": "string",
+        "description": "Default Bedrock model id when no model is specified (default: stability.sd3-5-large-v1:0)"
+      },
+      "models": {
+        "type": "object",
+        "description": "Per-model settings keyed by Bedrock model id; keys are also advertised in the model list",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "family": {
+              "type": "string",
+              "description": "Override request-schema family auto-detection",
+              "enum": [
+                "text-to-image",
+                "inpaint",
+                "erase",
+                "remove-background",
+                "search-replace",
+                "search-recolor",
+                "outpaint",
+                "creative-upscale",
+                "conservative-upscale",
+                "fast-upscale",
+                "control-sketch",
+                "control-structure",
+                "style-guide",
+                "style-transfer"
+              ]
+            },
+            "options": {
+              "type": "object",
+              "description": "Static fields merged into the InvokeModel request body (e.g. negative_prompt, style_preset, seed, outpaint directions, search_prompt)"
+            }
+          }
+        }
+      }
+    }
+  }
+}
