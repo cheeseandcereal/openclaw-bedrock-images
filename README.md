@@ -63,10 +63,38 @@ All settings live under `plugins.entries.bedrock-images.config`:
 | --- | --- | --- |
 | `region` | AWS SDK region chain (`AWS_REGION`, `~/.aws/config`, ...) | AWS region for the `bedrock-runtime` endpoint |
 | `auth` | `"api-key"` | `"api-key"` uses a Bedrock API key (bearer token); `"aws-sdk"` uses the AWS SDK default credential chain (SigV4) |
+| `apiKey` | unset | Bedrock API key as a literal string, `"${ENV_VAR}"` shorthand, or a [SecretRef](#api-key-as-a-secret) object |
 | `defaultModel` | `stability.sd3-5-large-v1:0` | Model used when a request doesn't specify one |
 | `models` | `{}` | Per-model settings map, see below |
 
-API key resolution order: stored OpenClaw auth profile → `AWS_BEARER_TOKEN_BEDROCK` env var. With `auth: "aws-sdk"`, no API key is used and the normal AWS credential chain (env keys, `~/.aws/credentials`, SSO, IMDS, ...) signs requests instead.
+API key resolution order: `apiKey` plugin config → stored OpenClaw auth profile → `AWS_BEARER_TOKEN_BEDROCK` env var. With `auth: "aws-sdk"`, no API key is used and the normal AWS credential chain (env keys, `~/.aws/credentials`, SSO, IMDS, ...) signs requests instead.
+
+### API key as a secret
+
+`apiKey` accepts any OpenClaw *SecretInput*, so you never have to put the raw key in your config file:
+
+```json5
+{
+  plugins: {
+    entries: {
+      "bedrock-images": {
+        config: {
+          // Env var (shorthand form):
+          apiKey: "${MY_BEDROCK_KEY}",
+
+          // ... or an explicit SecretRef. Sources: "env", "file" (mounted
+          // secret files), or "exec" (secret manager CLIs like vault/pass),
+          // configured under OpenClaw's `secrets.providers`:
+          // apiKey: { source: "exec", provider: "vault", id: "bedrock/api-key" },
+          // apiKey: { source: "file", provider: "mounted-json", id: "/bedrock/apiKey" },
+        },
+      },
+    },
+  },
+}
+```
+
+A configured `apiKey` that fails to resolve is a hard error (with the SecretRef named in the message) rather than a silent fallback to other sources. A literal string also works but is discouraged for anything beyond local experiments.
 
 ### Per-model settings (`models`)
 

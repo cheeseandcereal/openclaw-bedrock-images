@@ -9,8 +9,13 @@ import {
 } from "openclaw/plugin-sdk/image-generation";
 import { isProviderApiKeyConfigured } from "openclaw/plugin-sdk/provider-auth";
 import { resolveApiKeyForProvider } from "openclaw/plugin-sdk/provider-auth-runtime";
+import {
+  hasConfiguredSecretInput,
+  resolveConfiguredSecretInputString,
+} from "openclaw/plugin-sdk/secret-input-runtime";
 import { createBedrockRuntimeClient, resolveClientRegion } from "./client.js";
 import {
+  API_KEY_CONFIG_PATH,
   readConfiguredProviderApiKey,
   readPluginConfig,
   type BedrockImagesPluginConfig,
@@ -195,14 +200,35 @@ function describeInvokeError(error: unknown, model: string, region: string): Err
   });
 }
 
-async function resolveBearerApiKey(
+/** Resolves the bearer API key per auth mode and source precedence. Exported for tests. */
+export async function resolveBearerApiKey(
   req: ImageGenerationRequest,
   pluginCfg: BedrockImagesPluginConfig,
 ): Promise<string | undefined> {
   if ((pluginCfg.auth ?? "api-key") === "aws-sdk") {
     return undefined;
   }
-  // Stored auth profiles / provider config first; this can throw when nothing is configured.
+  // 1. Explicit plugin config: a literal string, "${ENV_VAR}", or a SecretRef
+  //    ({ source: "env" | "file" | "exec", ... }) resolved through OpenClaw's
+  //    secret machinery (including secret broker plugins).
+  if (hasConfiguredSecretInput(pluginCfg.apiKey)) {
+    const resolved = await resolveConfiguredSecretInputString({
+      config: req.cfg,
+      env: process.env,
+      value: pluginCfg.apiKey,
+      path: API_KEY_CONFIG_PATH,
+    });
+    if (resolved.value?.trim()) {
+      return resolved.value.trim();
+    }
+    // A configured-but-unresolved secret is a hard error; silently falling back
+    // to other sources would mask broken secret wiring.
+    throw new Error(
+      `${PROVIDER_ID}: configured API key did not resolve. ${resolved.unresolvedRefReason ?? `${API_KEY_CONFIG_PATH} resolved to an empty value.`}`,
+    );
+  }
+  // 2. Stored auth profiles (onboarding / `openclaw models auth login`); this
+  //    can throw when nothing is configured.
   let profileKey: string | undefined;
   try {
     const auth = await resolveApiKeyForProvider({
@@ -215,13 +241,14 @@ async function resolveBearerApiKey(
   } catch {
     // fall through to the standard AWS env var below
   }
+  // 3. The standard AWS env var.
   const apiKey =
     profileKey ||
     process.env.AWS_BEARER_TOKEN_BEDROCK?.trim() ||
     readConfiguredProviderApiKey(req.cfg);
   if (!apiKey) {
     throw new Error(
-      `${PROVIDER_ID}: no Bedrock API key found. Set the AWS_BEARER_TOKEN_BEDROCK env var, or set plugins.entries.${PROVIDER_ID}.config.auth to "aws-sdk" to use the AWS credential chain.`,
+      `${PROVIDER_ID}: no Bedrock API key found. Set ${API_KEY_CONFIG_PATH} (string or SecretRef), set the AWS_BEARER_TOKEN_BEDROCK env var, or set plugins.entries.${PROVIDER_ID}.config.auth to "aws-sdk" to use the AWS credential chain.`,
     );
   }
   return apiKey;
@@ -245,6 +272,9 @@ export function buildBedrockImagesProvider(): ImageGenerationProvider {
     isConfigured: (ctx) => {
       const pluginCfg = readPluginConfig(ctx.cfg);
       if (pluginCfg.auth === "aws-sdk") {
+        return true;
+      }
+      if (hasConfiguredSecretInput(pluginCfg.apiKey)) {
         return true;
       }
       if (process.env.AWS_BEARER_TOKEN_BEDROCK?.trim()) {

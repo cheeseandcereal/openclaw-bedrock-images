@@ -13,11 +13,20 @@ export type BedrockImagesPluginConfig = {
   region?: string;
   /** Auth mode: "api-key" (default, Bedrock API key bearer token) or "aws-sdk" (credential chain). */
   auth?: "api-key" | "aws-sdk";
+  /**
+   * Bedrock API key as an OpenClaw SecretInput: a literal string, "${ENV_VAR}"
+   * shorthand, or a SecretRef object like { source: "env" | "file" | "exec", id: "..." }.
+   * Kept unresolved here; resolved at request time.
+   */
+  apiKey?: unknown;
   /** Default model id when the request does not specify one. */
   defaultModel?: string;
   /** Per-model settings keyed by Bedrock model id. */
   models?: Record<string, BedrockImagesModelConfig>;
 };
+
+/** Config path for the plugin-config API key, used in schemas and error messages. */
+export const API_KEY_CONFIG_PATH = `plugins.entries.${PROVIDER_ID}.config.apiKey`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -64,6 +73,7 @@ export function readPluginConfig(cfg: unknown): BedrockImagesPluginConfig {
   return {
     ...(region ? { region } : {}),
     ...(auth === "api-key" || auth === "aws-sdk" ? { auth } : {}),
+    ...(raw.apiKey !== undefined ? { apiKey: raw.apiKey } : {}),
     ...(defaultModel ? { defaultModel } : {}),
     ...(Object.keys(models).length > 0 ? { models } : {}),
   };

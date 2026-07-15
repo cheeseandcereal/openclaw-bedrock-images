@@ -46,6 +46,22 @@
         "enum": ["api-key", "aws-sdk"],
         "description": "Authentication mode: 'api-key' (default) uses a Bedrock API key bearer token; 'aws-sdk' uses the AWS SDK default credential chain (SigV4)"
       },
+      "apiKey": {
+        "description": "Bedrock API key as a literal string, '${ENV_VAR}' shorthand, or a SecretRef object ({ source: 'env' | 'file' | 'exec', provider?, id })",
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "id"],
+            "properties": {
+              "source": { "type": "string", "enum": ["env", "file", "exec"] },
+              "provider": { "type": "string" },
+              "id": { "type": "string" }
+            }
+          }
+        ]
+      },
       "defaultModel": {
         "type": "string",
         "description": "Default Bedrock model id when no model is specified (default: stability.sd3-5-large-v1:0)"

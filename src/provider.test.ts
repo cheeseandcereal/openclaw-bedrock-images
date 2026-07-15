@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRequestBody, parseInvokeResponse } from "./provider.js";
+import { buildRequestBody, parseInvokeResponse, resolveBearerApiKey } from "./provider.js";
 
 const IMG_A = Buffer.from("image-a").toString("base64");
 const IMG_B = Buffer.from("image-b").toString("base64");
@@ -288,5 +288,49 @@ describe("parseInvokeResponse", () => {
   it("throws on empty response", () => {
     expect(() => parseInvokeResponse({}, "m")).toThrow(/no image data/);
     expect(() => parseInvokeResponse(null, "m")).toThrow(/malformed/);
+  });
+});
+
+describe("resolveBearerApiKey", () => {
+  const req = (cfg: unknown = {}) => ({ cfg }) as never;
+
+  it("returns undefined in aws-sdk mode", async () => {
+    await expect(resolveBearerApiKey(req(), { auth: "aws-sdk" })).resolves.toBeUndefined();
+  });
+
+  it("uses a literal config apiKey", async () => {
+    await expect(resolveBearerApiKey(req(), { apiKey: "literal-key" })).resolves.toBe(
+      "literal-key",
+    );
+  });
+
+  it("resolves ${ENV_VAR} shorthand from the environment", async () => {
+    process.env.BEDROCK_IMAGES_TEST_KEY = "shorthand-key";
+    try {
+      await expect(
+        resolveBearerApiKey(req(), { apiKey: "${BEDROCK_IMAGES_TEST_KEY}" }),
+      ).resolves.toBe("shorthand-key");
+    } finally {
+      delete process.env.BEDROCK_IMAGES_TEST_KEY;
+    }
+  });
+
+  it("resolves an env-source SecretRef object", async () => {
+    process.env.BEDROCK_IMAGES_TEST_KEY = "ref-key";
+    try {
+      await expect(
+        resolveBearerApiKey(req(), { apiKey: { source: "env", id: "BEDROCK_IMAGES_TEST_KEY" } }),
+      ).resolves.toBe("ref-key");
+    } finally {
+      delete process.env.BEDROCK_IMAGES_TEST_KEY;
+    }
+  });
+
+  it("fails loudly when a configured SecretRef does not resolve", async () => {
+    await expect(
+      resolveBearerApiKey(req(), {
+        apiKey: { source: "env", id: "BEDROCK_IMAGES_DEFINITELY_MISSING" },
+      }),
+    ).rejects.toThrow(/configured API key did not resolve.*BEDROCK_IMAGES_DEFINITELY_MISSING/s);
   });
 });
