@@ -1,7 +1,7 @@
 {
   "name": "@cheeseandcereal/openclaw-bedrock-images",
   "version": "0.1.0",
-  "description": "OpenClaw image generation plugin for Stability AI models on Amazon Bedrock (InvokeModel with Bedrock API keys or AWS credentials)",
+  "description": "OpenClaw image generation plugin for Amazon Bedrock (InvokeModel with Bedrock API keys or AWS credentials)",
   "type": "module",
   "license": "Unlicense",
   "repository": {

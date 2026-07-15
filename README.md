@@ -1,10 +1,12 @@
 # openclaw-bedrock-images
 
-[OpenClaw](https://openclaw.ai) image generation plugin for **Stability AI models on Amazon Bedrock**, using the Bedrock runtime `InvokeModel` API.
+[OpenClaw](https://openclaw.ai) image generation plugin for **Amazon Bedrock**, using the Bedrock runtime `InvokeModel` API.
 
 - Text-to-image with SD3.5 Large, Stable Image Core, and Stable Image Ultra
 - Image editing with the Stability AI Image Services (inpaint, erase, remove background, search & replace, outpaint, upscales, control sketch/structure, style guide/transfer)
 - Auth with an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started-api-keys.html) (bearer token), or optionally the standard AWS SDK credential chain (SigV4)
+
+The [currently supported models](#supported-models) are the Stability AI family — the current-generation image output models on Bedrock. The plugin itself is not Stability-specific: as Bedrock gains image models, new request-schema families can be added.
 
 ## Install
 
@@ -44,7 +46,7 @@ openclaw gateway restart
    }
    ```
 
-3. Make sure your AWS account has [model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) enabled for the Stability AI models you want, in the region you configured.
+3. Make sure your AWS account has [model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) enabled for the models you want, in the region you configured.
 
 That's it — the `image_generate` tool becomes available to your agent, and you can also test from the CLI:
 
@@ -125,9 +127,11 @@ A configured `apiKey` that fails to resolve is a hard error (with the SecretRef 
 - `options` — static fields merged into the request body (e.g. `negative_prompt`, `seed`, `style_preset`, `strength`, outpaint directions, `search_prompt`). Per-request values (prompt, images, aspect ratio, output format) win on conflict.
 - `family` — overrides request-schema auto-detection. Auto-detection matches the service slug in the model id and ignores region prefixes (`us.`, `eu.`, ...) and version suffixes, so new versions and regions work without configuration. Valid families: `text-to-image`, `inpaint`, `erase`, `remove-background`, `search-replace`, `search-recolor`, `outpaint`, `creative-upscale`, `conservative-upscale`, `fast-upscale`, `control-sketch`, `control-structure`, `style-guide`, `style-transfer`.
 
-Any `stability.*` model id works even if it isn't listed anywhere — unknown ids use the standard text-to-image schema.
+Any model id works even if it isn't listed anywhere — unknown ids use the standard text-to-image schema.
 
 ## Supported models
+
+The current model table covers the Stability AI family, Bedrock's current-generation image output models. Support for other model families can be added as Bedrock gains image models.
 
 Model selection is per request: the agent can pass `model` to `image_generate`, or you set `agents.defaults.imageGenerationModel`. There is no automatic routing to edit services — to use one, select its model id explicitly.
 
@@ -177,7 +181,7 @@ openclaw infer image edit \
 
 ## Region availability
 
-Stability AI models are only available in certain AWS regions (text-to-image models commonly in `us-west-2`; the `us.stability.*` image services via US inference profiles). Check [model support by region](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html) and set `plugins.entries.bedrock-images.config.region` accordingly. Access/not-found errors from this plugin include the region used to make misconfiguration obvious.
+Bedrock image models are only available in certain AWS regions (Stability text-to-image models commonly in `us-west-2`; the `us.stability.*` image services via US inference profiles). Check [model support by region](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html) and set `plugins.entries.bedrock-images.config.region` accordingly. Access/not-found errors from this plugin include the region used to make misconfiguration obvious.
 
 ## Development
 

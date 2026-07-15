@@ -1,4 +1,4 @@
-// Plugin entrypoint: Stability AI image generation on Amazon Bedrock.
+// Plugin entrypoint: image generation on Amazon Bedrock.
 import {
   definePluginEntry,
   type OpenClawPluginDefinition,
@@ -10,7 +10,7 @@ import { buildBedrockImagesProvider } from "./src/provider.js";
 const plugin: OpenClawPluginDefinition = definePluginEntry({
   id: PROVIDER_ID,
   name: "Bedrock Images",
-  description: "Stability AI image generation and editing on Amazon Bedrock via InvokeModel",
+  description: "Image generation and editing on Amazon Bedrock via InvokeModel",
   register(api) {
     api.registerProvider(createBedrockImagesAuthProvider());
     api.registerImageGenerationProvider(buildBedrockImagesProvider());

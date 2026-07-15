@@ -265,7 +265,7 @@ export function buildBedrockImagesProvider(): ImageGenerationProvider {
 
   return {
     id: PROVIDER_ID,
-    label: "Bedrock Images (Stability AI)",
+    label: "Bedrock Images",
     defaultModel: DEFAULT_MODEL,
     defaultTimeoutMs: DEFAULT_TIMEOUT_MS,
     models: [...BUILT_IN_MODELS],

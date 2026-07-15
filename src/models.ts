@@ -1,4 +1,6 @@
-// Stability AI on Amazon Bedrock: schema families, model detection, and built-in model list.
+// Bedrock image models: request-schema families, model detection, and built-in model list.
+// The current model table covers the Stability AI family (the current-generation image
+// models on Bedrock); new families can be added here as Bedrock gains image models.
 
 export const PROVIDER_ID = "bedrock-images";
 

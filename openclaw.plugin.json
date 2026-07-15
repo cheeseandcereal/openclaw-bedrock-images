@@ -1,7 +1,7 @@
 {
   "id": "bedrock-images",
   "name": "Bedrock Images",
-  "description": "Stability AI image generation and editing on Amazon Bedrock via InvokeModel",
+  "description": "Image generation and editing on Amazon Bedrock via InvokeModel",
   "providers": ["bedrock-images"],
   "activation": {
     "onStartup": true
@@ -22,7 +22,7 @@
       "choiceLabel": "Amazon Bedrock API key",
       "groupId": "bedrock-images",
       "groupLabel": "Bedrock Images",
-      "groupHint": "Stability AI image generation on Amazon Bedrock",
+      "groupHint": "Image generation on Amazon Bedrock",
       "onboardingScopes": ["image-generation"],
       "optionKey": "bedrockImagesApiKey",
       "cliFlag": "--bedrock-images-api-key",
