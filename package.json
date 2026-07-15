@@ -15,6 +15,9 @@
     "stability-ai",
     "image-generation"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "openclaw.plugin.json",
@@ -24,7 +27,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "check": "tsc -p tsconfig.json --noEmit"
+    "check": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
   },
   "openclaw": {
     "extensions": [
